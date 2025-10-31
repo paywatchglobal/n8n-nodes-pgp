@@ -1,5 +1,5 @@
 {
-  "name": "@hapheus/n8n-nodes-pgp",
+  "name": "@paywatchglobal/n8n-nodes-pgp",
   "version": "1.5.0",
   "description": "n8n-nodes-pgp enables seamless integration of PGP encryption functionalities into n8n workflows. Create keys, encrypt, decrypt, sign, and verify messages effortlessly. Perfect for secure data handling in automated workflows.",
   "keywords": [
@@ -20,13 +20,9 @@
   ],
   "license": "MIT",
   "homepage": "",
-  "author": {
-    "name": "Franz Haberfellner",
-    "email": "haf68k@gmail.com"
-  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hapheus/n8n-nodes-pgp.git"
+    "url": "https://github.com/paywatchglobal/n8n-nodes-pgp.git"
   },
   "engines": {
     "node": ">=18.10",
