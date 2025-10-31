@@ -12,9 +12,9 @@ async function readPgpMessage(message: string) {
         return await openpgp.readMessage({ armoredMessage: message });
     }
 
-    // Treat as binary - convert string to Uint8Array
-    const encoder = new TextEncoder();
-    const binaryData = encoder.encode(message);
+    // Treat as binary - convert binary string to Uint8Array
+    // Each character in a binary string represents a byte value (0-255)
+    const binaryData = Uint8Array.from(message, c => c.charCodeAt(0));
     return await openpgp.readMessage({ binaryMessage: binaryData });
 }
 
