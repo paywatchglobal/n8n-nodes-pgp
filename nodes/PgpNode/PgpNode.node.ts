@@ -341,9 +341,8 @@ export class PgpNode implements INodeType {
                             }
                             const encryptedMessage = await encryptBinary(binaryDataEncrypt, pubKey);
 
-                            // Use filename from JSON data if available, otherwise fallback to binary property filename
-                            const baseFileName = (item.json.fileName as string) ||
-                                               (item.json.filename as string) ||
+                            // Use name from JSON data if available, otherwise fallback to binary property filename
+                            const baseFileName = (item.json.name as string) ||
                                                item.binary[binaryPropertyName].fileName;
 
                             item.binary = {
@@ -393,9 +392,8 @@ export class PgpNode implements INodeType {
                                     priKey,
                                 );
 
-                                // Use filename from JSON data if available, otherwise fallback to binary property filename
-                                const baseFileName = (item.json.fileName as string) ||
-                                                   (item.json.filename as string) ||
+                                // Use name from JSON data if available, otherwise fallback to binary property filename
+                                const baseFileName = (item.json.name as string) ||
                                                    item.binary[binaryPropertyName].fileName;
 
                                 item.json = {};
@@ -420,9 +418,8 @@ export class PgpNode implements INodeType {
                                 }
                                 const encryptedMessage = await encryptBinary(binaryDataEncryptAndSign, pubKey);
 
-                                // Use filename from JSON data if available, otherwise fallback to binary property filename
-                                const baseFileName = (item.json.fileName as string) ||
-                                                   (item.json.filename as string) ||
+                                // Use name from JSON data if available, otherwise fallback to binary property filename
+                                const baseFileName = (item.json.name as string) ||
                                                    item.binary[binaryPropertyName].fileName;
 
                                 item.json = {};
@@ -480,9 +477,8 @@ export class PgpNode implements INodeType {
 
                             item.json = {};
 
-                            // Use filename from JSON data if available, otherwise fallback to binary property filename
-                            const baseFileName = (item.json.fileName as string) ||
-                                               (item.json.filename as string) ||
+                            // Use name from JSON data if available, otherwise fallback to binary property filename
+                            const baseFileName = (item.json.name as string) ||
                                                item.binary[binaryPropertyName]?.fileName;
                             const outputFileName = baseFileName?.endsWith('.pgp')
                                 ? baseFileName.replace(/\.pgp$/, '')
@@ -558,9 +554,8 @@ export class PgpNode implements INodeType {
                                     }
                                 }
 
-                                // Use filename from JSON data if available, otherwise fallback to binary property filename
-                                const baseFileName = (item.json.fileName as string) ||
-                                                   (item.json.filename as string) ||
+                                // Use name from JSON data if available, otherwise fallback to binary property filename
+                                const baseFileName = (item.json.name as string) ||
                                                    item.binary[binaryPropertyName]?.fileName;
                                 const outputFileName = baseFileName?.endsWith('.pgp')
                                     ? baseFileName.replace(/\.pgp$/, '')
@@ -612,9 +607,8 @@ export class PgpNode implements INodeType {
                                     pubKey,
                                 );
 
-                                // Use filename from JSON data if available, otherwise fallback to binary property filename
-                                const baseFileName = (item.json.fileName as string) ||
-                                                   (item.json.filename as string) ||
+                                // Use name from JSON data if available, otherwise fallback to binary property filename
+                                const baseFileName = (item.json.name as string) ||
                                                    item.binary[binaryPropertyName]?.fileName;
                                 const outputFileName = baseFileName?.endsWith('.pgp')
                                     ? baseFileName.replace(/\.pgp$/, '')
