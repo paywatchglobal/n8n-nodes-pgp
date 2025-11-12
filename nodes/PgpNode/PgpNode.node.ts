@@ -341,11 +341,16 @@ export class PgpNode implements INodeType {
                             }
                             const encryptedMessage = await encryptBinary(binaryDataEncrypt, pubKey);
 
+                            // Use filename from JSON data if available, otherwise fallback to binary property filename
+                            const baseFileName = (item.json.fileName as string) ||
+                                               (item.json.filename as string) ||
+                                               item.binary[binaryPropertyName].fileName;
+
                             item.binary = {
                                 message: {
                                     data: BinaryUtils.uint8ArrayToBase64(new TextEncoder().encode(encryptedMessage)),
                                     mimeType: 'application/pgp-encrypted',
-                                    fileName: `${item.binary[binaryPropertyName].fileName}.pgp`,
+                                    fileName: `${baseFileName}.pgp`,
                                 },
                             };
                         }
@@ -388,6 +393,11 @@ export class PgpNode implements INodeType {
                                     priKey,
                                 );
 
+                                // Use filename from JSON data if available, otherwise fallback to binary property filename
+                                const baseFileName = (item.json.fileName as string) ||
+                                                   (item.json.filename as string) ||
+                                                   item.binary[binaryPropertyName].fileName;
+
                                 item.json = {};
 
                                 item.binary = {
@@ -396,7 +406,7 @@ export class PgpNode implements INodeType {
                                             new TextEncoder().encode(encryptedMessage),
                                         ),
                                         mimeType: 'application/pgp-encrypted',
-                                        fileName: `${item.binary[binaryPropertyName].fileName}.pgp`,
+                                        fileName: `${baseFileName}.pgp`,
                                     },
                                 };
                             } else {
@@ -410,6 +420,11 @@ export class PgpNode implements INodeType {
                                 }
                                 const encryptedMessage = await encryptBinary(binaryDataEncryptAndSign, pubKey);
 
+                                // Use filename from JSON data if available, otherwise fallback to binary property filename
+                                const baseFileName = (item.json.fileName as string) ||
+                                                   (item.json.filename as string) ||
+                                                   item.binary[binaryPropertyName].fileName;
+
                                 item.json = {};
 
                                 item.binary = {
@@ -418,13 +433,13 @@ export class PgpNode implements INodeType {
                                             new TextEncoder().encode(encryptedMessage),
                                         ),
                                         mimeType: 'application/pgp-encrypted',
-                                        fileName: `${item.binary[binaryPropertyName].fileName}.pgp`,
+                                        fileName: `${baseFileName}.pgp`,
                                     },
                                     signature: {
                                         data: btoa(signatureEncryptAndSign as string),
                                         mimeType: 'application/pgp-signature',
                                         fileExtension: 'sig',
-                                        fileName: item.binary[binaryPropertyName].fileName + '.sig',
+                                        fileName: baseFileName + '.sig',
                                     },
                                 };
                             }
@@ -465,13 +480,19 @@ export class PgpNode implements INodeType {
 
                             item.json = {};
 
+                            // Use filename from JSON data if available, otherwise fallback to binary property filename
+                            const baseFileName = (item.json.fileName as string) ||
+                                               (item.json.filename as string) ||
+                                               item.binary[binaryPropertyName]?.fileName;
+                            const outputFileName = baseFileName?.endsWith('.pgp')
+                                ? baseFileName.replace(/\.pgp$/, '')
+                                : baseFileName;
+
                             item.binary = {
                                 decrypted: {
                                     data: BinaryUtils.uint8ArrayToBase64(decryptedMessage as Uint8Array),
                                     mimeType: 'application/octet-stream',
-                                    fileName: item.binary[binaryPropertyName]?.fileName?.endsWith('.pgp')
-                                        ? item.binary[binaryPropertyName]?.fileName?.replace(/\.pgp$/, '')
-                                        : undefined,
+                                    fileName: outputFileName,
                                 },
                             };
                         }
@@ -537,6 +558,14 @@ export class PgpNode implements INodeType {
                                     }
                                 }
 
+                                // Use filename from JSON data if available, otherwise fallback to binary property filename
+                                const baseFileName = (item.json.fileName as string) ||
+                                                   (item.json.filename as string) ||
+                                                   item.binary[binaryPropertyName]?.fileName;
+                                const outputFileName = baseFileName?.endsWith('.pgp')
+                                    ? baseFileName.replace(/\.pgp$/, '')
+                                    : baseFileName;
+
                                 item.json = {
                                     verified: decryptedMessageResult.verified,
                                 };
@@ -545,9 +574,7 @@ export class PgpNode implements INodeType {
                                     decrypted: {
                                         data: BinaryUtils.uint8ArrayToBase64(decryptedMessageResult.data),
                                         mimeType: 'application/octet-stream',
-                                        fileName: item.binary[binaryPropertyName]?.fileName?.endsWith('.pgp')
-                                            ? item.binary[binaryPropertyName]?.fileName?.replace(/\.pgp$/, '')
-                                            : undefined,
+                                        fileName: outputFileName,
                                     },
                                 };
                             } else {
@@ -585,6 +612,14 @@ export class PgpNode implements INodeType {
                                     pubKey,
                                 );
 
+                                // Use filename from JSON data if available, otherwise fallback to binary property filename
+                                const baseFileName = (item.json.fileName as string) ||
+                                                   (item.json.filename as string) ||
+                                                   item.binary[binaryPropertyName]?.fileName;
+                                const outputFileName = baseFileName?.endsWith('.pgp')
+                                    ? baseFileName.replace(/\.pgp$/, '')
+                                    : baseFileName;
+
                                 item.json = {
                                     verified: isVerifiedDecryptAndVerified,
                                 };
@@ -593,9 +628,7 @@ export class PgpNode implements INodeType {
                                     decrypted: {
                                         data: BinaryUtils.uint8ArrayToBase64(decryptedMessage as Uint8Array),
                                         mimeType: 'application/octet-stream',
-                                        fileName: item.binary[binaryPropertyName]?.fileName?.endsWith('.pgp')
-                                            ? item.binary[binaryPropertyName]?.fileName?.replace(/\.pgp$/, '')
-                                            : undefined,
+                                        fileName: outputFileName,
                                     },
                                 };
                             }
