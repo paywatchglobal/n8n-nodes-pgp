@@ -1,5 +1,8 @@
 # n8n-nodes-pgp
 
+![NPM Version](https://img.shields.io/npm/v/%40paywatchglobal%2Fn8n-nodes-pgp?color=red&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40paywatchglobal%2Fn8n-nodes-pgp)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/paywatchglobal/n8n-nodes-pgp/release.yml?link=https%3A%2F%2Fgithub.com%2Fpaywatchglobal%2Fn8n-nodes-pgp%2Factions%2Fworkflows%2Frelease.yml)
+
 This is an n8n community node. It lets you use OpenPGP encryption and signing in your n8n workflows.
 
 [OpenPGP](https://www.openpgp.org/) is a standard for encryption and signing of data.
