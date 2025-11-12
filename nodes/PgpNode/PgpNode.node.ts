@@ -216,39 +216,77 @@ export class PgpNode implements INodeType {
         let embeddedSignature: boolean;
 
         let credentials;
-        let priKey: PrivateKey;
-        let pubKey: Key;
+        let priKey: PrivateKey | undefined;
+        let pubKey: Key | undefined;
 
         credentials = await this.getCredentials('pgpCredentialsApi');
 
-        try {
-            if (credentials.passphrase) {
-                priKey = await openpgp.decryptKey({
-                    privateKey: await openpgp.readPrivateKey({
-                        armoredKey: (credentials.private_key as string).trim(),
-                    }),
-                    passphrase: credentials.passphrase as string,
-                });
-            } else {
-                priKey = await openpgp.readPrivateKey({
-                    armoredKey: (credentials.private_key as string).trim(),
-                });
+        // Helper function to determine which keys are needed for each operation
+        const getRequiredKeys = (op: string): { needsPrivate: boolean; needsPublic: boolean } => {
+            switch (op) {
+                case 'encrypt':
+                    return { needsPrivate: false, needsPublic: true };
+                case 'decrypt':
+                    return { needsPrivate: true, needsPublic: false };
+                case 'sign':
+                    return { needsPrivate: true, needsPublic: false };
+                case 'verify':
+                    return { needsPrivate: false, needsPublic: true };
+                case 'encrypt-and-sign':
+                case 'decrypt-and-verify':
+                    return { needsPrivate: true, needsPublic: true };
+                default:
+                    return { needsPrivate: false, needsPublic: false };
             }
-        } catch {
-            throw new NodeOperationError(this.getNode(), 'private key is not valid');
-        }
-
-        try {
-            pubKey = await openpgp.readKey({
-                armoredKey: (credentials.public_key as string).trim(),
-            });
-        } catch {
-            throw new NodeOperationError(this.getNode(), 'public key is not valid');
-        }
+        };
 
         for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
             try {
                 operation = this.getNodeParameter('operation', itemIndex) as string;
+
+                // Load keys only if needed for this operation and not already loaded
+                const { needsPrivate, needsPublic } = getRequiredKeys(operation);
+
+                if (needsPrivate && !priKey) {
+                    if (!credentials.private_key || (credentials.private_key as string).trim() === '') {
+                        throw new NodeOperationError(
+                            this.getNode(),
+                            `Private key is required for operation: ${operation}`,
+                        );
+                    }
+                    try {
+                        if (credentials.passphrase) {
+                            priKey = await openpgp.decryptKey({
+                                privateKey: await openpgp.readPrivateKey({
+                                    armoredKey: (credentials.private_key as string).trim(),
+                                }),
+                                passphrase: credentials.passphrase as string,
+                            });
+                        } else {
+                            priKey = await openpgp.readPrivateKey({
+                                armoredKey: (credentials.private_key as string).trim(),
+                            });
+                        }
+                    } catch {
+                        throw new NodeOperationError(this.getNode(), 'Private key is not valid');
+                    }
+                }
+
+                if (needsPublic && !pubKey) {
+                    if (!credentials.public_key || (credentials.public_key as string).trim() === '') {
+                        throw new NodeOperationError(
+                            this.getNode(),
+                            `Public key is required for operation: ${operation}`,
+                        );
+                    }
+                    try {
+                        pubKey = await openpgp.readKey({
+                            armoredKey: (credentials.public_key as string).trim(),
+                        });
+                    } catch {
+                        throw new NodeOperationError(this.getNode(), 'Public key is not valid');
+                    }
+                }
                 inputType = this.getNodeParameter('inputType', itemIndex) as string;
                 compressionAlgorithm = 'uncompressed';
                 embedSignature = false;
@@ -287,6 +325,9 @@ export class PgpNode implements INodeType {
 
                 switch (operation) {
                     case 'encrypt':
+                        if (!pubKey) {
+                            throw new NodeOperationError(this.getNode(), 'Public key is required for encryption');
+                        }
                         if (inputType === 'text') {
                             item.json = {
                                 encrypted: await encryptText(message, pubKey),
@@ -310,6 +351,12 @@ export class PgpNode implements INodeType {
                         }
                         break;
                     case 'encrypt-and-sign':
+                        if (!pubKey || !priKey) {
+                            throw new NodeOperationError(
+                                this.getNode(),
+                                'Both public and private keys are required for encrypt-and-sign',
+                            );
+                        }
                         if (inputType === 'text') {
                             if (embedSignature) {
                                 // Use embedded signature
@@ -384,6 +431,9 @@ export class PgpNode implements INodeType {
                         }
                         break;
                     case 'decrypt':
+                        if (!priKey) {
+                            throw new NodeOperationError(this.getNode(), 'Private key is required for decryption');
+                        }
                         if (inputType === 'text') {
                             const decrypted = await decryptText(message, priKey);
                             if (decrypted === false) {
@@ -427,6 +477,12 @@ export class PgpNode implements INodeType {
                         }
                         break;
                     case 'decrypt-and-verify':
+                        if (!pubKey || !priKey) {
+                            throw new NodeOperationError(
+                                this.getNode(),
+                                'Both public and private keys are required for decrypt-and-verify',
+                            );
+                        }
                         if (inputType === 'text') {
                             if (embeddedSignature) {
                                 // Handle embedded signature
@@ -546,6 +602,9 @@ export class PgpNode implements INodeType {
                         }
                         break;
                     case 'sign':
+                        if (!priKey) {
+                            throw new NodeOperationError(this.getNode(), 'Private key is required for signing');
+                        }
                         if (inputType === 'text') {
                             item.json = {
                                 signature: await signText(message, priKey),
@@ -567,6 +626,9 @@ export class PgpNode implements INodeType {
                         }
                         break;
                     case 'verify':
+                        if (!pubKey) {
+                            throw new NodeOperationError(this.getNode(), 'Public key is required for verification');
+                        }
                         if (inputType === 'text') {
                             signature = this.getNodeParameter('signature', itemIndex) as string;
                             const isVerified = await verifyText(message, signature, pubKey);

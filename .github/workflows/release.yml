@@ -3,13 +3,15 @@ name: Release Package Version
 on:
   push:
     tags:
-      - "*"
+      - "v*"
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
@@ -22,6 +24,4 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build
         run: pnpm build
-      - uses: simenandre/publish-with-pnpm@v2
-        with:
-          npm-auth-token: ${{ secrets.NPM_TOKEN }}
+      - uses: paywatchglobal/publish-with-pnpm@v2.1.0
